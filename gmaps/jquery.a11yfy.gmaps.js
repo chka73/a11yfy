@@ -5,11 +5,11 @@
  * Copyright (C) 2013 Dylan Barrell. All Rights Reserved as specified in the LICENSE file
  *
  */
-(function (jQuery) {
+(function(jQuery) {
     var timeout;
 
     // Add the focus styles
-    jQuery(document).ready(function () {
+    jQuery(document).ready(function() {
         var styleNode = document.createElement("style");
 
         styleNode.innerHTML = ".gm-style :focus { outline : dotted 2px black !important; box-shadow: inset 0 0 1em black; }";
@@ -47,19 +47,26 @@
     function mapTitleToButton(title) {
         var titleMaps = {
             /* English */
-            "Click to zoom" : "C2Z",
-            "Drag to zoom" : "D2Z",
-            "Show street map" : "SSM",
-            "Show satellite imagery" : "SSI",
-            "Show street map with terrain" : "SSMWT",
-            "Show imagery with street names" : "SIWSN",
+            "Click to zoom": "C2Z",
+            "Drag to zoom": "D2Z",
+            "Show street map": "SSM",
+            "Show satellite imagery": "SSI",
+            "Show street map with terrain": "SSMWT",
+            "Show imagery with street names": "SIWSN",
             /* German */
-            "Klicken zum Zoomen" : "C2Z",
-            "Ziehen zum Zoomen" : "D2Z",
-            "Stadtplan anzeigen" : "SSM",
-            "Satellitenbilder anzeigen" : "SSI",
-            "Stadtplan mit Gelände anzeigen" : "SSMWT",
-            "Satellitenbilder mit Straßennamen anzeigen" : "SIWSN"
+            "Klicken zum Zoomen": "C2Z",
+            "Ziehen zum Zoomen": "D2Z",
+            "Stadtplan anzeigen": "SSM",
+            "Satellitenbilder anzeigen": "SSI",
+            "Stadtplan mit Gelände anzeigen": "SSMWT",
+            "Satellitenbilder mit Straßennamen anzeigen": "SIWSN",
+            /* Swedish */
+            "Klicka om du vill zooma": "C2Z",
+            "Dra om du vill zooma": "D2Z",
+            "Visa gatukarta": "SSM",
+            "Visa satellitbilder": "SSI",
+            "Visa gatukarta med terräng": "SSMWT",
+            "Visa bilder med gatunamn": "SIWSN"
         }
         if (titleMaps[title]) {
             return titleMaps[title];
@@ -89,8 +96,8 @@
         }
         evt = document.createEvent("MouseEvent");
         coords = getElementCoordinates(e.target);
-        evt.initMouseEvent( "mouseover", true, true, window, 1, 0, 0, 1, 1,
-            false, false, false, false, 0, null);
+        evt.initMouseEvent("mouseover", true, true, window, 1, 0, 0, 1, 1,
+                false, false, false, false, 0, null);
         e.target.dispatchEvent(evt);
     }
     function fireMouseOut(e) {
@@ -98,14 +105,14 @@
             clearTimeout(timeout);
             timeout = undefined;
         }
-        timeout = setTimeout(function () {
+        timeout = setTimeout(function() {
             var evt, coords;
 
             timeout = undefined;
             evt = document.createEvent("MouseEvent");
             coords = getElementCoordinates(e.target);
-            evt.initMouseEvent( "mouseout", true, true, window, 1, 0, 0, 1, 1,
-                false, false, false, false, 0, null);
+            evt.initMouseEvent("mouseout", true, true, window, 1, 0, 0, 1, 1,
+                    false, false, false, false, 0, null);
             e.target.dispatchEvent(evt);
         }, 100);
     }
@@ -116,7 +123,7 @@
 
                 function fireMouseOvers(e) {
                     var i;
-                    for (i = pButtons.length; i--;) {
+                    for (i = pButtons.length; i--; ) {
                         if (isDisplayNone(pButtons[i].nextSibling)) {
                             fireMouseOver({target: pButtons[i]});
                         }
@@ -124,26 +131,29 @@
                 }
                 function fireMouseOuts(e) {
                     var i;
-                    for (i = pButtons.length; i--;) {
+                    for (i = pButtons.length; i--; ) {
                         if (!isDisplayNone(pButtons[i].nextSibling)) {
                             fireMouseOut({target: pButtons[i]});
                         }
                     }
                 }
                 function fixMap(node) {
-                    var mapButtons, nodes, i, title,
-                        sliderButton,
-                        sliderRange, sliderMin, sliderMax, sliderCurrent,
-                        sliderIncrement,
-                        currentSliderSlot;
+                    var mapButtons, mapPanels, nodes, i, title, imgSrc, xStart, xEnd, yStart, yEnd,
+                            sliderButton,
+                            sliderRange, sliderMin, sliderMax, sliderCurrent,
+                            sliderIncrement,
+                            currentSliderSlot;
 
                     mapButtons = document.querySelectorAll('.gmnoprint div[title]');
-                    if (!mapButtons.length) {
+                    mapPanels = node.querySelectorAll('img[src$="smartmaps"]');
+                    if (!mapButtons.length || !mapPanels.length) {
                         // If the map has not yet been drawn, wait
-                        setTimeout(fixMap, 100);
+                        setTimeout(function() {
+                            fixMap(node)
+                        }, 400);
                         return;
                     }
-                    for (i = mapButtons.length;i--;) {
+                    for (i = mapButtons.length; i--; ) {
                         title = mapTitleToButton(mapButtons[i].getAttribute('title'));
                         if (title !== "C2Z" && title !== "D2Z") {
                             /*
@@ -153,7 +163,7 @@
                             mapButtons[i].setAttribute('role', 'button');
                             mapButtons[i].setAttribute('tabindex', '0');
                             mapButtons[i].setAttribute('aria-label', title);
-                            google.maps.event.addDomListener(mapButtons[i], 'keydown', function (e) {
+                            google.maps.event.addDomListener(mapButtons[i], 'keydown', function(e) {
                                 e = e || event;
                                 var keyCode = e.which || e.keyCode;
                                 if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) {
@@ -179,14 +189,14 @@
                             sliderIncrement = (sliderMax - sliderMin) / 10;
                             sliderCurrent = parseInt(sliderButton.style.top, 10) - sliderMin;
                             currentSliderSlot = 10 -
-                                Math.floor((((sliderCurrent) / (sliderMax - sliderMin)) * 100) / 10 - 0.5);
+                                    Math.floor((((sliderCurrent) / (sliderMax - sliderMin)) * 100) / 10 - 0.5);
                             sliderButton.setAttribute('aria-valuenow', (currentSliderSlot - 1) * 10);
 
                             // Now set keyboard handlers to maintain state and value as user operates it
-                            google.maps.event.addDomListener(sliderButton, 'keydown', function (e) {
+                            google.maps.event.addDomListener(sliderButton, 'keydown', function(e) {
                                 e = e || event;
                                 var keyCode = e.which || e.keyCode,
-                                    move = false;
+                                        move = false;
                                 if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) {
                                     return;
                                 }
@@ -207,9 +217,9 @@
                                     // simulate mouse click to move the slider to the correct position
                                     coords = getElementCoordinates(sliderRange);
                                     evt = document.createEvent("MouseEvent");
-                                    evt.initMouseEvent( "click", true, true, window, 1, 0, 0, 1,
-                                        coords.top + ((10 - currentSliderSlot) * sliderIncrement) + sliderMin,
-                                        false, false, false, false, 0, null);
+                                    evt.initMouseEvent("click", true, true, window, 1, 0, 0, 1,
+                                            coords.top + ((10 - currentSliderSlot) * sliderIncrement) + sliderMin,
+                                            false, false, false, false, 0, null);
                                     sliderRange.dispatchEvent(evt);
                                     sliderButton.setAttribute('aria-valuenow', (currentSliderSlot - 1) * 10);
                                 }
@@ -239,15 +249,24 @@
                     }
                     // Fix the images without alt attributes
                     nodes = node.querySelectorAll('img');
-                    for (i= nodes.length; i--;) {
+                    for (i = nodes.length; i--; ) {
                         alt = nodes[i].getAttribute('alt');
                         if (!alt) {
-                            nodes[i].setAttribute('alt', '');
+                            imgSrc = nodes[i].getAttribute('src');
+                            if (imgSrc.indexOf('smartmaps') !== -1) {
+                                xStart = imgSrc.indexOf('x=');
+                                xEnd = imgSrc.indexOf('&', xStart);
+                                yStart = imgSrc.indexOf('y=');
+                                yEnd = imgSrc.indexOf('&', yStart);
+                                nodes[i].setAttribute('alt', 'Map panel at ' + imgSrc.substring(xStart, xEnd) + ', ' + imgSrc.substring(yStart, yEnd));
+                            }
+                            else
+                                nodes[i].setAttribute('alt', 'Unknown image ' + i);
                         }
                     }
                     // Fix the bunches of empty divs where the map panels are located
                     nodes = node.querySelectorAll('.gm-style>div');
-                    for (i = nodes.length; i--;) {
+                    for (i = nodes.length; i--; ) {
                         if (!nodes[i].className) {
                             nodes[i].setAttribute('aria-hidden', 'true');
                         }
@@ -260,11 +279,11 @@
 
     jQuery.fn.gmaps = function(method) {
         if (methods[method]) {
-            return methods[method].apply(this, Array.prototype.slice.call(arguments, 1 ));
-        } else if (typeof method === "object" || ! method) {
+            return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+        } else if (typeof method === "object" || !method) {
             return methods.init.apply(this, arguments);
         } else {
-            jQuery.error("Method " +  method + " does not exist on jQuery.gmaps");
+            jQuery.error("Method " + method + " does not exist on jQuery.gmaps");
         }
     };
 })(jQuery);
